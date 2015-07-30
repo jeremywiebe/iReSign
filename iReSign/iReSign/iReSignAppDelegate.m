@@ -515,52 +515,5 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     }
 }
 
-- (void)doVerifySignature {
-    if (appPath) {
-        verifyTask = [[NSTask alloc] init];
-        [verifyTask setLaunchPath:@"/usr/bin/codesign"];
-        [verifyTask setArguments:[NSArray arrayWithObjects:@"-v", appPath, nil]];
-		
-        [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkVerificationProcess:) userInfo:nil repeats:TRUE];
-        
-        NSLog(@"Verifying %@",appPath);
-        [statusLabel setStringValue:[NSString stringWithFormat:@"Verifying %@",appName]];
-        
-        NSPipe *pipe=[NSPipe pipe];
-        [verifyTask setStandardOutput:pipe];
-        [verifyTask setStandardError:pipe];
-        NSFileHandle *handle=[pipe fileHandleForReading];
-        
-        [verifyTask launch];
-        
-        [NSThread detachNewThreadSelector:@selector(watchVerificationProcess:)
-                                 toTarget:self withObject:handle];
-    }
-}
-
-- (void)watchVerificationProcess:(NSFileHandle*)streamHandle {
-    @autoreleasepool {
-        
-        verificationResult = [[NSString alloc] initWithData:[streamHandle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
-        
-    }
-}
-
-- (void)checkVerificationProcess:(NSTimer *)timer {
-    if ([verifyTask isRunning] == 0) {
-        [timer invalidate];
-        verifyTask = nil;
-        if ([verificationResult length] == 0) {
-            NSLog(@"Verification done");
-            [statusLabel setStringValue:@"Verification completed"];
-            [self doZip];
-        } else {
-            NSString *error = [[codesigningResult stringByAppendingString:@"\n\n"] stringByAppendingString:verificationResult];
-            [self showAlertOfKind:NSCriticalAlertStyle WithTitle:@"Signing failed" AndMessage:error];
-            [self enableControls];
-            [statusLabel setStringValue:@"Please try again"];
-        }
-    }
-}
 
 @end

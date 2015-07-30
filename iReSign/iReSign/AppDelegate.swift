@@ -49,6 +49,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    override init() {
+    }
+
+
+
+    func doVerifySignature() {
+        if let appPath = appPath {
+            verifyTask = NSTask()
+            verifyTask.launchPath = "/usr/bin/codesign"
+            verifyTask.arguments = ["-v", appPath]
+
+            NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkVerificationProcess:", userInfo: nil, repeats: true)
+
+            NSLog("Verifying %@",appPath)
+            statusLabel.stringValue = "Verifying \(appName)"
+
+            var pipe = NSPipe()
+            verifyTask.standardOutput = pipe
+            verifyTask.standardError = pipe
+            var handle = pipe.fileHandleForReading
+
+            verifyTask.launch()
+
+            NSThread.detachNewThreadSelector("watchVerificationProcess:", toTarget: self, withObject: handle)
+        }
+    }
+
+    func watchVerificationProcess(streamHandle: NSFileHandle) {
+        verificationResult = String(NSString(data: streamHandle.readDataToEndOfFile(), encoding:NSASCIIStringEncoding)!)
+    }
+
+    func checkVerificationProcess(timer: NSTimer) {
+        if !verifyTask.running {
+            timer.invalidate()
+            verifyTask = nil
+            if count(verificationResult) == 0 {
+                NSLog("Verification done")
+                statusLabel.stringValue = "Verification completed"
+                doZip()
+            } else {
+                var error = codesigningResult + "\n\n" + verificationResult
+                showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Signing failed", message: error)
+                enableControls()
+                statusLabel.stringValue = "Please try again"
+            }
+        }
+    }
+
     func doZip() {
         if let appPath = appPath {
             let destinationPathComponents = sourcePath.pathComponents

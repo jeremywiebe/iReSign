@@ -611,62 +611,8 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     }
 }
 
-- (IBAction)browse:(id)sender {
-    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
-    
-    [openDlg setCanChooseFiles:TRUE];
-    [openDlg setCanChooseDirectories:FALSE];
-    [openDlg setAllowsMultipleSelection:FALSE];
-    [openDlg setAllowsOtherFileTypes:FALSE];
-    [openDlg setAllowedFileTypes:@[@"ipa", @"IPA", @"xcarchive"]];
-    
-    if ([openDlg runModal] == NSOKButton)
-    {
-        NSString* fileNameOpened = [[[openDlg URLs] objectAtIndex:0] path];
-        [pathField setStringValue:fileNameOpened];
-    }
-}
 
-- (IBAction)provisioningBrowse:(id)sender {
-    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
-    
-    [openDlg setCanChooseFiles:TRUE];
-    [openDlg setCanChooseDirectories:FALSE];
-    [openDlg setAllowsMultipleSelection:FALSE];
-    [openDlg setAllowsOtherFileTypes:FALSE];
-    [openDlg setAllowedFileTypes:@[@"mobileprovision", @"MOBILEPROVISION"]];
-    
-    if ([openDlg runModal] == NSOKButton)
-    {
-        NSString* fileNameOpened = [[[openDlg URLs] objectAtIndex:0] path];
-        [provisioningPathField setStringValue:fileNameOpened];
-    }
-}
 
-- (IBAction)entitlementBrowse:(id)sender {
-    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
-    
-    [openDlg setCanChooseFiles:TRUE];
-    [openDlg setCanChooseDirectories:FALSE];
-    [openDlg setAllowsMultipleSelection:FALSE];
-    [openDlg setAllowsOtherFileTypes:FALSE];
-    [openDlg setAllowedFileTypes:@[@"plist", @"PLIST"]];
-    
-    if ([openDlg runModal] == NSOKButton)
-    {
-        NSString* fileNameOpened = [[[openDlg URLs] objectAtIndex:0] path];
-        [entitlementField setStringValue:fileNameOpened];
-    }
-}
-
-- (IBAction)changeBundleIDPressed:(id)sender {
-    
-    if (sender != changeBundleIDCheckbox) {
-        return;
-    }
-    
-    bundleIDField.enabled = changeBundleIDCheckbox.state == NSOnState;
-}
 
 
 

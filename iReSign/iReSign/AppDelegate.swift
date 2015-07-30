@@ -49,6 +49,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    @IBAction func browse(sender: AnyObject) {
+        var panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowsOtherFileTypes = false
+        panel.allowedFileTypes = ["ipa", "IPA", "xcarchive"]
+
+        if panel.runModal() == NSOKButton {
+            if let fileNameOpened = (panel.URLs as! [NSURL])[0].path {
+                pathField.stringValue = fileNameOpened
+            }
+        }
+    }
+
+    @IBAction func provisioningBrowse(sender: AnyObject)  {
+        var panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowsOtherFileTypes = false
+        panel.allowedFileTypes = ["mobileprovision", "MOBILEPROVISION"]
+
+        if panel.runModal() == NSOKButton {
+            if let fileNameOpened = (panel.URLs as! [NSURL])[0].path {
+                provisioningPathField.stringValue = fileNameOpened
+            }
+        }
+    }
+
+    @IBAction func entitlementBrowse(sender: AnyObject)  {
+        var panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowsOtherFileTypes = false
+        panel.allowedFileTypes = ["plist", "PLIST"]
+
+        if panel.runModal() == NSOKButton {
+            if let fileNameOpened = (panel.URLs as! [NSURL])[0].path {
+                entitlementField.stringValue = fileNameOpened
+            }
+        }
+    }
+
+    @IBAction func changeBundleIDPressed(sender: NSButton) {
+        if sender != changeBundleIDCheckbox {
+            return
+        }
+        bundleIDField.enabled = changeBundleIDCheckbox.state == NSOnState
+    }
+
     func disableControls() {
         pathField.enabled = false
         entitlementField.enabled = false

@@ -698,13 +698,6 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     [flurry setAlphaValue:0.5];
 }
 
--(NSInteger)numberOfItemsInComboBox:(NSComboBox *)aComboBox {
-    NSInteger count = 0;
-    if ([aComboBox isEqual:certComboBox]) {
-        count = [certComboBoxItems count];
-    }
-    return count;
-}
 
 
 

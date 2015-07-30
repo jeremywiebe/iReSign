@@ -49,6 +49,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    func numberOfItemsInComboBox(comboBox: NSComboBox) -> Int {
+        var count = 0
+        if comboBox == certComboBox {
+            count = certComboBoxItems.count
+        }
+
+        return count
+    }
+
     func comboBox(comboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> String? {
         var item: String?
         if (comboBox == certComboBox) {

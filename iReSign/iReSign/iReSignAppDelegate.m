@@ -714,7 +714,110 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     return item;
 }
 
+- (void)getCerts {
+    
+    getCertsResult = nil;
+    
+    NSLog(@"Getting Certificate IDs");
+    [statusLabel setStringValue:@"Getting Signing Certificate IDs"];
+    
+    certTask = [[NSTask alloc] init];
+    [certTask setLaunchPath:@"/usr/bin/security"];
+    [certTask setArguments:[NSArray arrayWithObjects:@"find-identity", @"-v", @"-p", @"codesigning", nil]];
+    
+    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkCerts:) userInfo:nil repeats:TRUE];
+    
+    NSPipe *pipe=[NSPipe pipe];
+    [certTask setStandardOutput:pipe];
+    [certTask setStandardError:pipe];
+    NSFileHandle *handle=[pipe fileHandleForReading];
+    
+    [certTask launch];
+    
+    [NSThread detachNewThreadSelector:@selector(watchGetCerts:) toTarget:self withObject:handle];
 }
 
+- (void)watchGetCerts:(NSFileHandle*)streamHandle {
+    @autoreleasepool {
+        
+        NSString *securityResult = [[NSString alloc] initWithData:[streamHandle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+        // Verify the security result
+        if (securityResult == nil || securityResult.length < 1) {
+            // Nothing in the result, return
+            return;
+        }
+        NSArray *rawResult = [securityResult componentsSeparatedByString:@"\""];
+        NSMutableArray *tempGetCertsResult = [NSMutableArray arrayWithCapacity:20];
+        for (int i = 0; i <= [rawResult count] - 2; i+=2) {
+            
+            NSLog(@"i:%d", i+1);
+            if (rawResult.count - 1 < i + 1) {
+                // Invalid array, don't add an object to that position
+            } else {
+                // Valid object
+                [tempGetCertsResult addObject:[rawResult objectAtIndex:i+1]];
+            }
+        }
+        
+        certComboBoxItems = [NSMutableArray arrayWithArray:tempGetCertsResult];
+        
+        [certComboBox reloadData];
+        
+    }
+}
+
+- (void)checkCerts:(NSTimer *)timer {
+    if ([certTask isRunning] == 0) {
+        [timer invalidate];
+        certTask = nil;
+        
+        if ([certComboBoxItems count] > 0) {
+            NSLog(@"Get Certs done");
+            [statusLabel setStringValue:@"Signing Certificate IDs extracted"];
+            
+            if ([defaults valueForKey:@"CERT_INDEX"]) {
+                
+                NSInteger selectedIndex = [[defaults valueForKey:@"CERT_INDEX"] integerValue];
+                if (selectedIndex != -1) {
+                    NSString *selectedItem = [self comboBox:certComboBox objectValueForItemAtIndex:selectedIndex];
+                    [certComboBox setObjectValue:selectedItem];
+                    [certComboBox selectItemAtIndex:selectedIndex];
+                }
+                
+                [self enableControls];
+            }
+        } else {
+            [self showAlertOfKind:NSCriticalAlertStyle WithTitle:@"Error" AndMessage:@"Getting Certificate ID's failed"];
+            [self enableControls];
+            [statusLabel setStringValue:@"Ready"];
+        }
+    }
+}
+
+// If the application dock icon is clicked, reopen the window
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    // Make sure the window is visible
+    if (![self.window isVisible]) {
+        // Window isn't shown, show it
+        [self.window makeKeyAndOrderFront:self];
+    }
+    
+    // Return YES
+    return YES;
+}
+
+#pragma mark - Alert Methods
+
+/* NSRunAlerts are being deprecated in 10.9 */
+
+// Show a critical alert
+- (void)showAlertOfKind:(NSAlertStyle)style WithTitle:(NSString *)title AndMessage:(NSString *)message {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert addButtonWithTitle:@"OK"];
+    [alert setMessageText:title];
+    [alert setInformativeText:message];
+    [alert setAlertStyle:style];
+    [alert runModal];
+}
 
 @end

@@ -668,35 +668,7 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     bundleIDField.enabled = changeBundleIDCheckbox.state == NSOnState;
 }
 
-- (void)disableControls {
-    [pathField setEnabled:FALSE];
-    [entitlementField setEnabled:FALSE];
-    [browseButton setEnabled:FALSE];
-    [resignButton setEnabled:FALSE];
-    [provisioningBrowseButton setEnabled:NO];
-    [provisioningPathField setEnabled:NO];
-    [changeBundleIDCheckbox setEnabled:NO];
-    [bundleIDField setEnabled:NO];
-    [certComboBox setEnabled:NO];
-    
-    [flurry startAnimation:self];
-    [flurry setAlphaValue:1.0];
-}
 
-- (void)enableControls {
-    [pathField setEnabled:TRUE];
-    [entitlementField setEnabled:TRUE];
-    [browseButton setEnabled:TRUE];
-    [resignButton setEnabled:TRUE];
-    [provisioningBrowseButton setEnabled:YES];
-    [provisioningPathField setEnabled:YES];
-    [changeBundleIDCheckbox setEnabled:YES];
-    [bundleIDField setEnabled:changeBundleIDCheckbox.state == NSOnState];
-    [certComboBox setEnabled:YES];
-    
-    [flurry stopAnimation:self];
-    [flurry setAlphaValue:0.5];
-}
 
 
 

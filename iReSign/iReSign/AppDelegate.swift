@@ -49,6 +49,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    func disableControls() {
+        pathField.enabled = false
+        entitlementField.enabled = false
+        browseButton.enabled = false
+        resignButton.enabled = false
+        provisioningBrowseButton.enabled = false
+        provisioningPathField.enabled = false
+        changeBundleIDCheckbox.enabled = false
+        bundleIDField.enabled = false
+        certComboBox.enabled = false
+
+        flurry.startAnimation(self)
+        flurry.alphaValue = 1.0
+    }
+
+    func enableControls() {
+        pathField.enabled = true
+        entitlementField.enabled = true
+        browseButton.enabled = true
+        resignButton.enabled = true
+        provisioningBrowseButton.enabled = true
+        provisioningPathField.enabled = true
+        changeBundleIDCheckbox.enabled = true
+        bundleIDField.enabled = changeBundleIDCheckbox.state == NSOnState
+        certComboBox.enabled = true
+
+        flurry.stopAnimation(self)
+        flurry.alphaValue = 0.5
+    }
+
     func numberOfItemsInComboBox(comboBox: NSComboBox) -> Int {
         var count = 0
         if comboBox == certComboBox {

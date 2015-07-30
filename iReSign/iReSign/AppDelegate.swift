@@ -45,12 +45,87 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBOutlet var changeBundleIDCheckbox: NSButton!
 
     @IBOutlet var certComboBox: NSComboBox!
-    var certComboBoxItems: NSMutableArray!
+    var certComboBoxItems = [String]()
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
 
+    func getCerts() {
+        getCertsResult = nil
 
+        NSLog("Getting Certificate IDs")
+        statusLabel.stringValue = "Getting Signing Certificate IDs"
+
+        certTask = NSTask()
+        certTask.launchPath = "/usr/bin/security"
+        certTask.arguments = ["find-identity", "-v", "-p", "codesigning"]
+
+
+        //    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkCerts:) userInfo:nil repeats:TRUE];
+
+        var pipe = NSPipe()
+        certTask.standardOutput = pipe
+        certTask.standardError = pipe
+
+        var handle = pipe.fileHandleForReading
+
+        certTask.launch()
+
+        //    [NSThread detachNewThreadSelector:@selector(watchGetCerts:) toTarget:self withObject:handle];
+    }
+
+    func watchGetCerts(streamHandle: NSFileHandle) {
+        var securityResult = NSString(data: streamHandle.readDataToEndOfFile(), encoding: NSASCIIStringEncoding)
+
+        // Verify the security result
+        if (securityResult == nil || securityResult!.length < 1) {
+            // Nothing in the result, return
+            return
+        }
+
+        var rawResult = securityResult?.componentsSeparatedByString("\"") as! [String]
+        var tempGetCertsResult = [String]()
+
+        for (var i = 0; i <= rawResult.count - 2; i += 2) {
+            NSLog("i:\(i+1)")
+
+            if (rawResult.count - 1 < i + 1) {
+                // Invalid array, don't add an object to that position
+            } else {
+                // Valid object
+                tempGetCertsResult.append(rawResult[i+1])
+            }
+        }
+        
+        certComboBoxItems = tempGetCertsResult
+        certComboBox.reloadData()
+    }
+
+    func checkCerts(timer: NSTimer) {
+        if !certTask.running {
+            timer.invalidate()
+            certTask = nil
+
+            if  certComboBoxItems.count > 0 {
+                NSLog("Get Certs done")
+                statusLabel.stringValue = "Signing Certificate IDs extracted"
+
+                if let certIndex = defaults.stringForKey("CERT_INDEX")?.toInt() {
+                    if (certIndex != -1) {
+                        var selectedItem = self.comboBox(certComboBox, objectValueForItemAtIndex:certIndex)
+                        certComboBox.objectValue = selectedItem
+                        certComboBox.selectItemAtIndex(certIndex)
+                    }
+
+                    enableControls()
+                }
+            } else {
+                showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Getting Certificate ID's failed")
+                enableControls()
+                statusLabel.stringValue = "Ready"
+            }
+        }
+    }
 
     // If the application dock icon is clicked, reopen the window
     func applicationShouldHandleReopen(sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

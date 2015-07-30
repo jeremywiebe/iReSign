@@ -8,7 +8,6 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "IRTextFieldDrag.h"
 
 @interface iReSignAppDelegate : NSObject <NSApplicationDelegate> {
 @private

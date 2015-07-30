@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3F5803AC1B6AB02800CA552F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5803AB1B6AB02800CA552F /* AppDelegate.swift */; };
+		3FA1820A1B69A3AF0011DE55 /* IRTextFieldDrag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA182091B69A3AF0011DE55 /* IRTextFieldDrag.swift */; };
 		4C8EAD45185B74B90095DC6B /* IRHelpWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8EAD44185B74B90095DC6B /* IRHelpWindow.m */; };
-		5B9E4C4C166AB3F7006D9F8F /* IRTextFieldDrag.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B9E4C4B166AB3F7006D9F8F /* IRTextFieldDrag.m */; };
 		C115EE2B13815024003B9ACC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C115EE2A13815024003B9ACC /* Cocoa.framework */; };
 		C115EE3513815024003B9ACC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C115EE3313815024003B9ACC /* InfoPlist.strings */; };
 		C115EE3813815024003B9ACC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C115EE3713815024003B9ACC /* main.m */; };
@@ -19,10 +20,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3F5803AB1B6AB02800CA552F /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3FA182081B69A3AE0011DE55 /* iReSign-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iReSign-Bridging-Header.h"; sourceTree = "<group>"; };
+		3FA182091B69A3AF0011DE55 /* IRTextFieldDrag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IRTextFieldDrag.swift; sourceTree = "<group>"; };
 		4C8EAD43185B74B90095DC6B /* IRHelpWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRHelpWindow.h; sourceTree = "<group>"; };
 		4C8EAD44185B74B90095DC6B /* IRHelpWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IRHelpWindow.m; sourceTree = "<group>"; };
-		5B9E4C4A166AB3F7006D9F8F /* IRTextFieldDrag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTextFieldDrag.h; sourceTree = "<group>"; };
-		5B9E4C4B166AB3F7006D9F8F /* IRTextFieldDrag.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IRTextFieldDrag.m; sourceTree = "<group>"; };
 		C115EE2613815024003B9ACC /* iReSign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iReSign.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C115EE2A13815024003B9ACC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		C115EE2D13815024003B9ACC /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -92,14 +94,15 @@
 		C115EE3013815024003B9ACC /* iReSign */ = {
 			isa = PBXGroup;
 			children = (
+				3F5803AB1B6AB02800CA552F /* AppDelegate.swift */,
 				C115EE3C13815024003B9ACC /* iReSignAppDelegate.h */,
 				C115EE3D13815024003B9ACC /* iReSignAppDelegate.m */,
 				C115EE3F13815024003B9ACC /* MainMenu.xib */,
-				5B9E4C4A166AB3F7006D9F8F /* IRTextFieldDrag.h */,
-				5B9E4C4B166AB3F7006D9F8F /* IRTextFieldDrag.m */,
+				3FA182091B69A3AF0011DE55 /* IRTextFieldDrag.swift */,
 				4C8EAD43185B74B90095DC6B /* IRHelpWindow.h */,
 				4C8EAD44185B74B90095DC6B /* IRHelpWindow.m */,
 				C115EE3113815024003B9ACC /* Supporting Files */,
+				3FA182081B69A3AE0011DE55 /* iReSign-Bridging-Header.h */,
 			);
 			path = iReSign;
 			sourceTree = "<group>";
@@ -186,7 +189,8 @@
 				C115EE3813815024003B9ACC /* main.m in Sources */,
 				4C8EAD45185B74B90095DC6B /* IRHelpWindow.m in Sources */,
 				C115EE3E13815024003B9ACC /* iReSignAppDelegate.m in Sources */,
-				5B9E4C4C166AB3F7006D9F8F /* IRTextFieldDrag.m in Sources */,
+				3F5803AC1B6AB02800CA552F /* AppDelegate.swift in Sources */,
+				3FA1820A1B69A3AF0011DE55 /* IRTextFieldDrag.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +271,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -275,8 +280,11 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iReSign/iReSign-Prefix.pch";
 				INFOPLIST_FILE = "iReSign/iReSign-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "iReSign/iReSign-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -285,6 +293,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
@@ -293,8 +302,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iReSign/iReSign-Prefix.pch";
 				INFOPLIST_FILE = "iReSign/iReSign-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "iReSign/iReSign-Bridging-Header.h";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

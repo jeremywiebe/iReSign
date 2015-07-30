@@ -7,14 +7,14 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>55C76783-2CEC-4A8B-BA32-DF9DAB6B90C5</string>
 	<key>IDESourceControlProjectName</key>
-	<string>iReSign</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>43280492CE74ADAC7B7AD1393F0FB52CA2FE257C</key>
 		<string>github.com:maciekish/iReSign.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>iReSign/iReSign.xcodeproj</string>
+	<string>iReSign/iReSign.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>43280492CE74ADAC7B7AD1393F0FB52CA2FE257C</key>

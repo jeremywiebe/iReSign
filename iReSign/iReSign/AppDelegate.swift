@@ -9,6 +9,17 @@
 import Foundation
 import Cocoa
 
+var kKeyPrefsBundleIDChange            = "keyBundleIDChange"
+
+var kKeyBundleIDPlistApp               = "CFBundleIdentifier"
+var kKeyBundleIDPlistiTunesArtwork     = "softwareVersionBundleId"
+var kKeyInfoPlistApplicationProperties = "ApplicationProperties"
+var kKeyInfoPlistApplicationPath       = "ApplicationPath"
+var kPayloadDirName                    = "Payload"
+var kProductsDirName                   = "Products"
+var kInfoPlistFilename                 = "Info.plist"
+var kiTunesMetadataFileName            = "iTunesMetadata"
+
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     var window: NSWindow
@@ -53,6 +64,150 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
 
+    func doEntitlementsFixing()
+    {
+        if entitlementField.stringValue == "" || provisioningPathField.stringValue == "" {
+            doCodeSigning()
+            return // Using a pre-made entitlements file or we're not re-provisioning.
+        }
+
+        statusLabel.stringValue = "Generating entitlements"
+
+        if let appPath = appPath {
+            generateEntitlementsTask = NSTask()
+            generateEntitlementsTask.launchPath = "/usr/bin/security"
+            generateEntitlementsTask.arguments = ["cms", "-D", "-i", provisioningPathField.stringValue]
+            generateEntitlementsTask.currentDirectoryPath = workingPath
+
+            NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector:"checkEntitlementsFix:", userInfo:nil, repeats:true)
+
+            var pipe = NSPipe()
+            generateEntitlementsTask.standardOutput = pipe
+            generateEntitlementsTask.standardError = pipe
+            let handle = pipe.fileHandleForReading
+
+            generateEntitlementsTask.launch()
+
+            NSThread.detachNewThreadSelector("watchEntitlements:", toTarget:self, withObject:handle)
+        }
+    }
+
+    func watchEntitlements(streamHandle: NSFileHandle) {
+        entitlementsResult = String(NSString(data: streamHandle.readDataToEndOfFile(), encoding:NSASCIIStringEncoding))
+    }
+
+    func checkEntitlementsFix(timer: NSTimer) {
+        if !generateEntitlementsTask.running {
+            timer.invalidate()
+            generateEntitlementsTask = nil
+            NSLog("Entitlements fixed done")
+            statusLabel.stringValue = "Entitlements generated"
+            doEntitlementsEdit()
+        }
+    }
+
+    func doEntitlementsEdit()
+    {
+        if let entitlements = entitlementsResult.propertyList() as? NSDictionary {
+            if let entitlementElement = entitlements["Entitlements"] as? NSDictionary {
+                var filePath = workingPath.stringByAppendingPathComponent("entitlements.plist")
+                var xmlData = NSPropertyListSerialization.dataWithPropertyList(entitlements, format: NSPropertyListFormat.XMLFormat_v1_0, options: 0, error: nil)!
+                if xmlData.writeToFile(filePath, atomically: true) {
+                    NSLog("Error writing entitlements file.")
+                    showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Failed entitlements generation")
+                    enabledControls()
+                    statusLabel.stringValue = "Ready"
+                } else {
+                    entitlementField.stringValue = filePath;
+                    doCodeSigning()
+                }
+            }
+        }
+    }
+
+    func doCodeSigning() {
+        appPath = nil
+
+        var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
+
+        for file in dirContents {
+            if file.pathExtension.lowercaseString == "app" {
+                appPath = workingPath.stringByAppendingPathComponent(kPayloadDirName).stringByAppendingPathComponent(file)
+                NSLog("Found \(appPath)")
+                appName = file
+                statusLabel.stringValue = "Codesigning \(file)"
+                break
+            }
+        }
+
+        if let appPath = appPath {
+            var arguments = ["-fs", certComboBox.objectValue!]
+            var systemVersionDictionary = NSDictionary(contentsOfFile: "/System/Library/CoreServices/SystemVersion.plist")
+            var systemVersion = systemVersionDictionary?.objectForKey("ProductVersion") as? String
+            if let version = systemVersion?.componentsSeparatedByString(".") {
+                if (version[0].toInt()<10 || (version[0].toInt()==10 && (version[1].toInt()<9 || (version[1].toInt()==9 && version[2].toInt()<5)))) {
+
+                    /*
+                    Before OSX 10.9, code signing requires a version 1 signature.
+                    The resource envelope is necessary.
+                    To ensure it is added, append the resource flag to the arguments.
+                    */
+
+                    var resourceRulesPath = NSBundle.mainBundle().pathForResource("ResourceRules", ofType:"plist")
+                    var resourceRulesArgument = "--resource-rules=\(resourceRulesPath)"
+                    arguments.append(resourceRulesArgument)
+                } else {
+
+                    /*
+                    For OSX 10.9 and later, code signing requires a version 2 signature.
+                    The resource envelope is obsolete.
+                    To ensure it is ignored, remove the resource key from the Info.plist file.
+                    */
+
+                    var infoPath = "\(appPath)/Info.plist"
+                    var infoDict = NSMutableDictionary(contentsOfFile: infoPath)
+                    infoDict?.removeObjectForKey("CFBundleResourceSpecification")
+                    infoDict?.writeToFile(infoPath, atomically: true)
+                    arguments.append("--no-strict") // http://stackoverflow.com/a/26204757
+                }
+            }
+
+            if entitlementField.stringValue == "" {
+                arguments.append("--entitlements=\(entitlementField.stringValue)")
+            }
+
+            arguments.append(appPath)
+
+            codesignTask = NSTask()
+            codesignTask.launchPath = "/usr/bin/codesign"
+            codesignTask.arguments = arguments
+
+            NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkCodesigning:", userInfo: nil, repeats: true)
+
+            var pipe = NSPipe()
+            codesignTask.standardOutput = pipe
+            codesignTask.standardError = pipe
+            var handle = pipe.fileHandleForReading
+
+            codesignTask.launch()
+
+            NSThread.detachNewThreadSelector("watchCodesigning:", toTarget: self, withObject: handle)
+        }
+    }
+
+    func watchCodesigning(streamHandle: NSFileHandle) {
+        codesigningResult = String(NSString(data: streamHandle.readDataToEndOfFile(), encoding:NSASCIIStringEncoding)!)
+    }
+
+    func checkCodesigning(timer: NSTimer) {
+        if !codesignTask.running {
+            timer.invalidate()
+            codesignTask = nil
+            NSLog("Codesigning done")
+            statusLabel.stringValue = "Codesigning completed"
+            doVerifySignature()
+        }
+    }
 
     func doVerifySignature() {
         if let appPath = appPath {

@@ -49,6 +49,55 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    func doZip() {
+        if let appPath = appPath {
+            let destinationPathComponents = sourcePath.pathComponents
+            var destinationPath = ""
+
+            for var i=0; i<destinationPathComponents.count-1; i++ {
+                destinationPath = destinationPath.stringByAppendingPathComponent(destinationPathComponents[i])
+            }
+
+            fileName = sourcePath.lastPathComponent
+            fileName = fileName.substringToIndex(advance(fileName.endIndex, -(count(sourcePath.pathExtension) + 1)))
+            fileName = fileName.stringByAppendingString("-resigned")
+            fileName = fileName.stringByAppendingPathExtension("ipa")
+
+            destinationPath = destinationPath.stringByAppendingPathComponent(fileName)
+
+            NSLog("Dest: \(destinationPath)")
+
+            zipTask = NSTask()
+            zipTask.launchPath = "/usr/bin/zip"
+            zipTask.currentDirectoryPath = workingPath
+            zipTask.arguments = ["-qry", destinationPath, "."]
+
+            NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkZip:", userInfo: nil, repeats: true)
+
+            NSLog("Zipping \(destinationPath)")
+            statusLabel.stringValue = "Saving \(fileName)"
+
+            zipTask.launch()
+        }
+    }
+
+    func checkZip(timer: NSTimer) {
+        if !zipTask.running {
+            timer.invalidate()
+            zipTask = nil
+
+            NSLog("Zipping done")
+            statusLabel.stringValue = "Saved \(fileName)"
+
+            NSFileManager.defaultManager().removeItemAtPath(workingPath, error: nil)
+
+            enableControls()
+
+            var result = codesigningResult + "\n\n" + verificationResult
+            NSLog("Codesigning result: \(result)")
+        }
+    }
+
     @IBAction func browse(sender: AnyObject) {
         var panel = NSOpenPanel()
         panel.canChooseFiles = true

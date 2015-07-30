@@ -794,30 +794,5 @@ static NSString *kiTunesMetadataFileName            = @"iTunesMetadata";
     }
 }
 
-// If the application dock icon is clicked, reopen the window
-- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
-    // Make sure the window is visible
-    if (![self.window isVisible]) {
-        // Window isn't shown, show it
-        [self.window makeKeyAndOrderFront:self];
-    }
-    
-    // Return YES
-    return YES;
-}
-
-#pragma mark - Alert Methods
-
-/* NSRunAlerts are being deprecated in 10.9 */
-
-// Show a critical alert
-- (void)showAlertOfKind:(NSAlertStyle)style WithTitle:(NSString *)title AndMessage:(NSString *)message {
-    NSAlert *alert = [[NSAlert alloc] init];
-    [alert addButtonWithTitle:@"OK"];
-    [alert setMessageText:title];
-    [alert setInformativeText:message];
-    [alert setAlertStyle:style];
-    [alert runModal];
-}
 
 @end

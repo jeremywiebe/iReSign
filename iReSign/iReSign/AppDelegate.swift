@@ -63,6 +63,103 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
     }
 
+    func doProvisioning() {
+        var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
+
+        for file in dirContents {
+            if file.pathExtension.lowercaseString == "app" {
+                appPath = workingPath.stringByAppendingPathComponent(kPayloadDirName).stringByAppendingPathComponent(file)
+                if NSFileManager.defaultManager().fileExistsAtPath(appPath.stringByAppendingPathComponent("embedded.mobileprovision")) {
+                    NSLog("Found embedded.mobileprovision, deleting.")
+                    NSFileManager.defaultManager().removeItemAtPath(appPath.stringByAppendingPathComponent("embedded.mobileprovision"), error:nil)
+                }
+                break
+            }
+        }
+
+        var targetPath = appPath.stringByAppendingPathComponent("embedded.mobileprovision")
+
+        provisioningTask = NSTask()
+        provisioningTask.launchPath = "/bin/cp"
+        provisioningTask.arguments = [provisioningPathField.stringValue, targetPath]
+
+        provisioningTask.launch()
+
+        NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkProvisioning:", userInfo: nil, repeats: true)
+    }
+
+    func checkProvisioning(timer: NSTimer) {
+        if !provisioningTask.running {
+            timer.invalidate()
+            provisioningTask = nil
+
+            var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
+
+            for file in dirContents {
+                if file.pathExtension.lowercaseString == "app" {
+                    appPath = workingPath.stringByAppendingPathComponent(kPayloadDirName).stringByAppendingPathComponent(file)
+                    if NSFileManager.defaultManager().fileExistsAtPath(appPath.stringByAppendingPathComponent("embedded.mobileprovision")) {
+                        var identifierOK = false
+                        var identifierInProvisioning = ""
+
+                        var embeddedProvisioning = NSString(contentsOfFile: appPath.stringByAppendingPathComponent("embedded.mobileprovision"), encoding:NSASCIIStringEncoding, error:nil)!
+                        var embeddedProvisioningLines = embeddedProvisioning.componentsSeparatedByCharactersInSet(NSCharacterSet.newlineCharacterSet())
+
+                        for var i = 0; i <= embeddedProvisioningLines.count; i++ {
+                            if embeddedProvisioningLines[i].rangeOfString("application-identifier").location != NSNotFound {
+
+                                var fromPosition = embeddedProvisioningLines[i+1].rangeOfString("<string>").location + 8;
+                                var toPosition = embeddedProvisioningLines[i+1].rangeOfString("</string>").location;
+
+                                var range = NSRange()
+                                range.location = fromPosition
+                                range.length = toPosition - fromPosition
+
+                                var fullIdentifier = embeddedProvisioningLines[i+1].substringWithRange(range)
+
+                                var identifierComponents = fullIdentifier.componentsSeparatedByString(".")
+
+                                if identifierComponents.last == "*" {
+                                    identifierOK = true
+                                }
+
+                                for var i = 1; i < identifierComponents.count; i++ {
+                                    identifierInProvisioning = identifierInProvisioning.stringByAppendingString(identifierComponents[i])
+                                    if i < identifierComponents.count - 1 {
+                                        identifierInProvisioning = identifierInProvisioning.stringByAppendingString(".")
+                                    }
+                                }
+                                break
+                            }
+                        }
+                        
+                        NSLog("Mobileprovision identifier: \(identifierInProvisioning)")
+                        
+                        var infoPlist = NSString(contentsOfFile:appPath.stringByAppendingPathComponent("Info.plist"), encoding:NSASCIIStringEncoding, error:nil)!
+                        if infoPlist.rangeOfString(identifierInProvisioning).location != NSNotFound {
+                            NSLog("Identifiers match")
+                            identifierOK = true
+                        }
+
+                        if identifierOK {
+                            NSLog("Provisioning completed.")
+                            statusLabel.stringValue = "Provisioning completed"
+                            doEntitlementsFixing()
+                        } else {
+                            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Product identifiers don't match")
+                            enableControls()
+                            statusLabel.stringValue = "Ready"
+                        }
+                    } else {
+                        showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Provisioning failed")
+                        enableControls()
+                        statusLabel.stringValue = "Ready"
+                    }
+                    break
+                }
+            }
+        }
+    }
 
     func doEntitlementsFixing()
     {

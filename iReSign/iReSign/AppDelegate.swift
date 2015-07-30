@@ -49,6 +49,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var certTask: NSTask!
     var getCertsResult: NSArray!
 
+    func comboBox(comboBox: NSComboBox, objectValueForItemAtIndex index: Int) -> String? {
+        var item: String?
+        if (comboBox == certComboBox) {
+            item = certComboBoxItems[index]
+        }
+
+        return item
+    }
 
     func getCerts() {
         getCertsResult = nil
@@ -60,8 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         certTask.launchPath = "/usr/bin/security"
         certTask.arguments = ["find-identity", "-v", "-p", "codesigning"]
 
-
-        //    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkCerts:) userInfo:nil repeats:TRUE];
+        NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkCerts:", userInfo: nil, repeats: true)
 
         var pipe = NSPipe()
         certTask.standardOutput = pipe
@@ -71,7 +78,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         certTask.launch()
 
-        //    [NSThread detachNewThreadSelector:@selector(watchGetCerts:) toTarget:self withObject:handle];
+        NSThread.detachNewThreadSelector("watchGetCerts:", toTarget: self, withObject: handle)
     }
 
     func watchGetCerts(streamHandle: NSFileHandle) {

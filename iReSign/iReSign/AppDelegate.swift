@@ -63,6 +63,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
     }
 
+    func checkCopy(timer: NSTimer) {
+        if !copyTask.running {
+            timer.invalidate()
+            copyTask = nil
+
+            NSLog("Copy done")
+            statusLabel.stringValue = ".xcarchive app copied"
+
+            if changeBundleIDCheckbox.state == NSOnState {
+                doBundleIDChange(bundleIDField.stringValue)
+            }
+
+            if provisioningPathField.stringValue == "" {
+                doCodeSigning()
+            } else {
+                doProvisioning()
+            }
+        }
+    }
+
     func doBundleIDChange(newBundleID: String) -> Bool {
         return doAppBundleIDChange(newBundleID)
             && doITunesMetadataBundleIDChange(newBundleID)

@@ -172,27 +172,6 @@
     }
 }
 
-- (void)checkCopy:(NSTimer *)timer {
-    if ([copyTask isRunning] == 0) {
-        [timer invalidate];
-        copyTask = nil;
-        
-        NSLog(@"Copy done");
-        [statusLabel setStringValue:@".xcarchive app copied"];
-        
-        if (changeBundleIDCheckbox.state == NSOnState) {
-            [self doBundleIDChange:bundleIDField.stringValue];
-        }
-        
-        if ([[provisioningPathField stringValue] isEqualTo:@""]) {
-            [self doCodeSigning];
-        } else {
-            [self doProvisioning];
-        }
-    }
-}
-
-
 }
 
 

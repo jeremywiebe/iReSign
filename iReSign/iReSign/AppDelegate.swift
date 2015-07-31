@@ -63,6 +63,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
     }
 
+    func checkUnzip(timer: NSTimer) {
+        if !unzipTask.running {
+            timer.invalidate()
+            unzipTask = nil
+
+            if NSFileManager.defaultManager().fileExistsAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName)) {
+                NSLog("Unzipping done")
+                statusLabel.stringValue = "Original app extracted"
+
+                if changeBundleIDCheckbox.state == NSOnState {
+                    doBundleIDChange(bundleIDField.stringValue)
+                }
+
+                if provisioningPathField.stringValue == "" {
+                    doCodeSigning()
+                } else {
+                    doProvisioning()
+                }
+            } else {
+                showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Unzip failed")
+                enableControls()
+                statusLabel.stringValue = "Ready"
+            }
+        }
+    }
+
     func checkCopy(timer: NSTimer) {
         if !copyTask.running {
             timer.invalidate()

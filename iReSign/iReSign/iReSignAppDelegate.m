@@ -146,32 +146,6 @@
     }
 }
 
-- (void)checkUnzip:(NSTimer *)timer {
-    if ([unzipTask isRunning] == 0) {
-        [timer invalidate];
-        unzipTask = nil;
-        
-        if ([[NSFileManager defaultManager] fileExistsAtPath:[workingPath stringByAppendingPathComponent:kPayloadDirName]]) {
-            NSLog(@"Unzipping done");
-            [statusLabel setStringValue:@"Original app extracted"];
-            
-            if (changeBundleIDCheckbox.state == NSOnState) {
-                [self doBundleIDChange:bundleIDField.stringValue];
-            }
-            
-            if ([[provisioningPathField stringValue] isEqualTo:@""]) {
-                [self doCodeSigning];
-            } else {
-                [self doProvisioning];
-            }
-        } else {
-            [self showAlertOfKind:NSCriticalAlertStyle WithTitle:@"Error" AndMessage:@"Unzip failed"];
-            [self enableControls];
-            [statusLabel setStringValue:@"Ready"];
-        }
-    }
-}
-
 }
 
 

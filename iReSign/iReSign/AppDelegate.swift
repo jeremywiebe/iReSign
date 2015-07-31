@@ -63,6 +63,55 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
     }
 
+    func doBundleIDChange(newBundleID: String) -> Bool {
+        return doAppBundleIDChange(newBundleID)
+            && doITunesMetadataBundleIDChange(newBundleID)
+    }
+
+    func doITunesMetadataBundleIDChange(newBundleID: String) -> Bool {
+        var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath, error: nil) as! [String]
+        var infoPlistPath: String
+
+        for file in dirContents {
+            if file.pathExtension.lowercaseString == "plist" {
+                infoPlistPath = workingPath.stringByAppendingPathComponent(file)
+                break
+            }
+        }
+
+        return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistiTunesArtwork, newBundleID:newBundleID, plistOutOptions:NSPropertyListFormat.XMLFormat_v1_0)
+    }
+
+    func doAppBundleIDChange(newBundleID: String) -> Bool {
+        var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
+        var infoPlistPath: String
+
+        for file in dirContents {
+            if file.pathExtension.lowercaseString == "app" {
+                infoPlistPath = workingPath.stringByAppendingPathComponent(kPayloadDirName)
+                    .stringByAppendingPathComponent(file)
+                    .stringByAppendingPathComponent(kInfoPlistFilename)
+                break
+            }
+        }
+
+        return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistApp, newBundleID:newBundleID, plistOutOptions: NSPropertyListFormat.XMLFormat_v1_0)
+    }
+
+    func changeBundleIDForFile(filePath: String, bundleIDKey: String, newBundleID: String, plistOutOptions options:NSPropertyListFormat) -> Bool {
+        if NSFileManager.defaultManager().fileExistsAtPath(filePath) {
+            if let plist = NSMutableDictionary(contentsOfFile: filePath) {
+                plist.setObject(newBundleID, forKey: bundleIDKey)
+
+                if let xmlData = NSPropertyListSerialization.dataWithPropertyList(plist, format: options, options: NSPropertyListWriteOptions.allZeros, error: nil) {
+                    return xmlData.writeToFile(filePath, atomically: true)
+                }
+            }
+        }
+
+        return false
+    }
+
     func doProvisioning() {
         var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
 

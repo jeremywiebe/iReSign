@@ -192,64 +192,6 @@
     }
 }
 
-- (BOOL)doBundleIDChange:(NSString *)newBundleID {
-    BOOL success = YES;
-    
-    success &= [self doAppBundleIDChange:newBundleID];
-    success &= [self doITunesMetadataBundleIDChange:newBundleID];
-    
-    return success;
-}
-
-
-- (BOOL)doITunesMetadataBundleIDChange:(NSString *)newBundleID {
-    NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:workingPath error:nil];
-    NSString *infoPlistPath = nil;
-    
-    for (NSString *file in dirContents) {
-        if ([[[file pathExtension] lowercaseString] isEqualToString:@"plist"]) {
-            infoPlistPath = [workingPath stringByAppendingPathComponent:file];
-            break;
-        }
-    }
-    
-    return [self changeBundleIDForFile:infoPlistPath bundleIDKey:kKeyBundleIDPlistiTunesArtwork newBundleID:newBundleID plistOutOptions:NSPropertyListXMLFormat_v1_0];
-    
-}
-
-- (BOOL)doAppBundleIDChange:(NSString *)newBundleID {
-    NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[workingPath stringByAppendingPathComponent:kPayloadDirName] error:nil];
-    NSString *infoPlistPath = nil;
-    
-    for (NSString *file in dirContents) {
-        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
-            infoPlistPath = [[[workingPath stringByAppendingPathComponent:kPayloadDirName]
-                              stringByAppendingPathComponent:file]
-                             stringByAppendingPathComponent:kInfoPlistFilename];
-            break;
-        }
-    }
-    
-    return [self changeBundleIDForFile:infoPlistPath bundleIDKey:kKeyBundleIDPlistApp newBundleID:newBundleID plistOutOptions:NSPropertyListBinaryFormat_v1_0];
-}
-
-- (BOOL)changeBundleIDForFile:(NSString *)filePath bundleIDKey:(NSString *)bundleIDKey newBundleID:(NSString *)newBundleID plistOutOptions:(NSPropertyListWriteOptions)options {
-    
-    NSMutableDictionary *plist = nil;
-    
-    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        plist = [[NSMutableDictionary alloc] initWithContentsOfFile:filePath];
-        [plist setObject:newBundleID forKey:bundleIDKey];
-        
-        NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:options options:kCFPropertyListImmutable error:nil];
-        
-        return [xmlData writeToFile:filePath atomically:YES];
-        
-    }
-    
-    return NO;
-}
-
 
 }
 

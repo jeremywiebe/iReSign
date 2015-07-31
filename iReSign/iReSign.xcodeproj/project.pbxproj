@@ -13,7 +13,6 @@
 		C115EE2B13815024003B9ACC /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C115EE2A13815024003B9ACC /* Cocoa.framework */; };
 		C115EE3513815024003B9ACC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C115EE3313815024003B9ACC /* InfoPlist.strings */; };
 		C115EE3813815024003B9ACC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C115EE3713815024003B9ACC /* main.m */; };
-		C115EE3E13815024003B9ACC /* iReSignAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C115EE3D13815024003B9ACC /* iReSignAppDelegate.m */; };
 		C115EE4113815024003B9ACC /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = C115EE3F13815024003B9ACC /* MainMenu.xib */; };
 		C142471F138174E500F5B51F /* ResourceRules.plist in Resources */ = {isa = PBXBuildFile; fileRef = C142471E138174E500F5B51F /* ResourceRules.plist */; };
 		C14247301381B75B00F5B51F /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = C142472F1381B75B00F5B51F /* Icon.icns */; };
@@ -34,8 +33,6 @@
 		C115EE3413815024003B9ACC /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C115EE3613815024003B9ACC /* iReSign-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iReSign-Prefix.pch"; sourceTree = "<group>"; };
 		C115EE3713815024003B9ACC /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		C115EE3C13815024003B9ACC /* iReSignAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iReSignAppDelegate.h; sourceTree = "<group>"; };
-		C115EE3D13815024003B9ACC /* iReSignAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iReSignAppDelegate.m; sourceTree = "<group>"; };
 		C115EE4013815024003B9ACC /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		C142471E138174E500F5B51F /* ResourceRules.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ResourceRules.plist; sourceTree = "<group>"; };
 		C142472F1381B75B00F5B51F /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Icon.icns; path = ../Icon.icns; sourceTree = "<group>"; };
@@ -95,8 +92,6 @@
 			isa = PBXGroup;
 			children = (
 				3F5803AB1B6AB02800CA552F /* AppDelegate.swift */,
-				C115EE3C13815024003B9ACC /* iReSignAppDelegate.h */,
-				C115EE3D13815024003B9ACC /* iReSignAppDelegate.m */,
 				C115EE3F13815024003B9ACC /* MainMenu.xib */,
 				3FA182091B69A3AF0011DE55 /* IRTextFieldDrag.swift */,
 				4C8EAD43185B74B90095DC6B /* IRHelpWindow.h */,
@@ -188,7 +183,6 @@
 			files = (
 				C115EE3813815024003B9ACC /* main.m in Sources */,
 				4C8EAD45185B74B90095DC6B /* IRHelpWindow.m in Sources */,
-				C115EE3E13815024003B9ACC /* iReSignAppDelegate.m in Sources */,
 				3F5803AC1B6AB02800CA552F /* AppDelegate.swift in Sources */,
 				3FA1820A1B69A3AF0011DE55 /* IRTextFieldDrag.swift in Sources */,
 			);

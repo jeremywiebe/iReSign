@@ -22,9 +22,9 @@ var kiTunesMetadataFileName            = "iTunesMetadata"
 
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    var window: NSWindow
+    let window = NSWindow()
 
-    var defaults: NSUserDefaults!
+    let defaults = NSUserDefaults.standardUserDefaults()
 
     var unzipTask: NSTask!
     var copyTask: NSTask!
@@ -61,6 +61,134 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var getCertsResult: NSArray!
 
     override init() {
+    }
+
+    func applicationDidFinishLaunching(notification: NSNotification) {
+        flurry.alphaValue = 0.5
+
+        // Look up available signing certificates
+        getCerts()
+
+        if let entitlementPath = defaults.stringForKey("ENTITLEMENT_PATH") {
+            entitlementField.stringValue = entitlementPath
+        }
+
+        if let provisioningPath = defaults.stringForKey("MOBILEPROVISION_PATH") {
+            provisioningPathField.stringValue = provisioningPath
+        }
+
+        if !NSFileManager.defaultManager().fileExistsAtPath("/usr/bin/zip") {
+            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "This app cannot run without the zip utility present at /usr/bin/zip")
+            exit(0)
+        }
+
+        if !NSFileManager.defaultManager().fileExistsAtPath("/usr/bin/unzip") {
+            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "This app cannot run without the zip utility present at /usr/bin/unzip")
+            exit(0)
+        }
+
+        if !NSFileManager.defaultManager().fileExistsAtPath("/usr/bin/codesign") {
+            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "This app cannot run without the zip utility present at /usr/bin/codesign")
+            exit(0)
+        }
+    }
+
+    @IBAction func resign(sender: AnyObject) {
+        //Save cert name
+        defaults.setValue(certComboBox.indexOfSelectedItem, forKey: "CERT_INDEX")
+        defaults.setValue(entitlementField.stringValue, forKey: "ENTITLEMENT_PATH")
+        defaults.setValue(provisioningPathField.stringValue, forKey:"MOBILEPROVISION_PATH")
+        defaults.setValue(bundleIDField.stringValue, forKey:kKeyPrefsBundleIDChange)
+        defaults.synchronize()
+
+        codesigningResult = nil;
+        verificationResult = nil;
+
+        sourcePath = pathField.stringValue
+        workingPath = NSTemporaryDirectory().stringByAppendingPathComponent("com.appulize.iresign")
+
+        if let certValue = certComboBox.objectValue as? String {
+            var ext = sourcePath.pathExtension.lowercaseString
+            if ext == "ipa" || ext == "xcarchive" {
+                disableControls()
+
+                NSLog("Setting up working directory in \(workingPath)")
+                statusLabel.hidden = false
+                statusLabel.stringValue = "Setting up working directory"
+
+                NSFileManager.defaultManager().removeItemAtPath(workingPath, error: nil)
+
+                NSFileManager.defaultManager().createDirectoryAtPath(workingPath, withIntermediateDirectories: true, attributes: nil, error: nil)
+
+                if ext == "ipa" {
+                    if let sourcePath = sourcePath where count(sourcePath) > 0 {
+                        NSLog("Unzipping %@",sourcePath)
+                        statusLabel.stringValue = "Extracting original app"
+
+                        unzipTask = NSTask()
+                        unzipTask.launchPath = "/usr/bin/unzip"
+                        unzipTask.arguments = ["-q", sourcePath, "-d", workingPath]
+
+                        NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "checkUnzip:", userInfo: nil, repeats: true)
+
+                        unzipTask.launch()
+                    }
+                } else {
+                    var payloadPath = workingPath.stringByAppendingPathComponent(kPayloadDirName)
+
+                    NSLog("Setting up \(kPayloadDirName) path in \(payloadPath)")
+                    statusLabel.stringValue = "Setting up \(kPayloadDirName) path"
+
+                    NSFileManager.defaultManager().createDirectoryAtPath(payloadPath, withIntermediateDirectories:true, attributes:nil, error:nil)
+
+                    NSLog("Retrieving \(kInfoPlistFilename)")
+                    statusLabel.stringValue = "Retrieving \(kInfoPlistFilename)"
+
+                    let infoPlistPath = sourcePath.stringByAppendingPathComponent(kInfoPlistFilename)
+                    var infoPListDict = NSDictionary(contentsOfFile: infoPlistPath)
+
+                    if let infoPListDict = infoPListDict {
+                        var applicationPath: String? = nil;
+                        if let applicationPropertiesDict = infoPListDict.objectForKey(kKeyInfoPlistApplicationProperties) as? NSDictionary {
+                            applicationPath = applicationPropertiesDict.objectForKey(kKeyInfoPlistApplicationPath) as? String
+                        }
+
+                        if var applicationPath = applicationPath {
+                            applicationPath = sourcePath
+                                .stringByAppendingPathComponent(kProductsDirName)
+                                .stringByAppendingPathComponent(applicationPath)
+
+                            NSLog("Copying \(applicationPath) to \(kPayloadDirName) path in \(payloadPath)");
+                            statusLabel.stringValue = "Copying .xcarchive app to \(kPayloadDirName) path"
+
+                            copyTask = NSTask()
+                            copyTask.launchPath = "/bin/cp"
+                            copyTask.arguments = ["-r", applicationPath, payloadPath]
+
+                            NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector:"checkCopy:", userInfo:nil, repeats:true)
+
+                            copyTask.launch()
+                        } else {
+                            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title:"Error", message:"Unable to parse \(kInfoPlistFilename)")
+                            enableControls()
+                            statusLabel.stringValue = "Ready"
+                        }
+                    } else {
+                        showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title:"Error", message:"Retrieve \(kInfoPlistFilename) failed")
+                        enableControls()
+                        statusLabel.stringValue = "Ready"
+                    }
+                }
+            } else {
+                showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title:"Error", message:"You must choose an *.ipa or *.xcarchive file")
+                enableControls()
+                statusLabel.stringValue = "Ready"
+            }
+        } else {
+            showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title:"Error", message:"You must choose an signing certificate from dropdown.")
+            enableControls()
+            statusLabel.stringValue = "Ready"
+        }
     }
 
     func checkUnzip(timer: NSTimer) {
@@ -116,7 +244,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func doITunesMetadataBundleIDChange(newBundleID: String) -> Bool {
         var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath, error: nil) as! [String]
-        var infoPlistPath: String
+        var infoPlistPath: String?
 
         for file in dirContents {
             if file.pathExtension.lowercaseString == "plist" {
@@ -125,12 +253,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistiTunesArtwork, newBundleID:newBundleID, plistOutOptions:NSPropertyListFormat.XMLFormat_v1_0)
+        if let infoPlistPath = infoPlistPath {
+            return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistiTunesArtwork, newBundleID:newBundleID, plistOutOptions:NSPropertyListFormat.XMLFormat_v1_0)
+        } else {
+            return false
+        }
     }
 
     func doAppBundleIDChange(newBundleID: String) -> Bool {
         var dirContents = NSFileManager.defaultManager().contentsOfDirectoryAtPath(workingPath.stringByAppendingPathComponent(kPayloadDirName), error: nil) as! [String]
-        var infoPlistPath: String
+        var infoPlistPath: String?
 
         for file in dirContents {
             if file.pathExtension.lowercaseString == "app" {
@@ -141,7 +273,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistApp, newBundleID:newBundleID, plistOutOptions: NSPropertyListFormat.XMLFormat_v1_0)
+        if let infoPlistPath = infoPlistPath {
+            return changeBundleIDForFile(infoPlistPath, bundleIDKey:kKeyBundleIDPlistApp, newBundleID:newBundleID, plistOutOptions: NSPropertyListFormat.XMLFormat_v1_0)
+        } else {
+            return false
+        }
     }
 
     func changeBundleIDForFile(filePath: String, bundleIDKey: String, newBundleID: String, plistOutOptions options:NSPropertyListFormat) -> Bool {
@@ -285,7 +421,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func watchEntitlements(streamHandle: NSFileHandle) {
-        entitlementsResult = String(NSString(data: streamHandle.readDataToEndOfFile(), encoding:NSASCIIStringEncoding))
+        if let entitlements = NSString(data: streamHandle.readDataToEndOfFile(), encoding:NSASCIIStringEncoding) {
+            entitlementsResult = String(entitlements)
+        }
     }
 
     func checkEntitlementsFix(timer: NSTimer) {
@@ -307,7 +445,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if xmlData.writeToFile(filePath, atomically: true) {
                     NSLog("Error writing entitlements file.")
                     showAlertOfKind(NSAlertStyle.CriticalAlertStyle, title: "Error", message: "Failed entitlements generation")
-                    enabledControls()
+                    enableControls()
                     statusLabel.stringValue = "Ready"
                 } else {
                     entitlementField.stringValue = filePath;

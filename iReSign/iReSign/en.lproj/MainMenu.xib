@@ -224,7 +224,7 @@
             </connections>
             <point key="canvasLocation" x="262.5" y="243.5"/>
         </window>
-        <customObject id="494" customClass="iReSignAppDelegate">
+        <customObject id="494" customClass="AppDelegate" customModule="iReSign" customModuleProvider="target">
             <connections>
                 <outlet property="browseButton" destination="535" id="546"/>
                 <outlet property="bundleIDField" destination="572" id="576"/>
